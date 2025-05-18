@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Магазин</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+    .wallet {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #fff;
+      padding: 10px 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .container {
+      max-width: 960px;
+      margin: 100px auto 20px;
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 0 10px;
+    }
+    .item {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 15px;
+      text-align: center;
+      width: 30%;
+    }
+    .item img {
+      width: 100%;
+      border-radius: 8px;
+    }
+    .controls {
+      margin-top: 10px;
+    }
+    .controls button {
+      margin: 5px;
+      padding: 5px 10px;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .controls button:hover {
+      background: #0056b3;
+    }
+    .bottom-panel {
+      text-align: center;
+      margin-top: 30px;
+    }
+    .bottom-panel input {
+      padding: 5px;
+      width: 100px;
+      margin-right: 5px;
+    }
+    .bottom-panel button {
+      margin: 5px;
+      padding: 5px 10px;
+      border: none;
+      background: #28a745;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .bottom-panel button:hover {
+      background: #1e7e34;
+    }
+  </style>
+</head>
+<body>
+  <div class="wallet">Баланс: <span id="balance">100</span> BBHS</div>
+
+  <div class="container">
+    <div class="item" data-id="0" data-price="30">
+      <img src="https://via.placeholder.com/200x150?text=Объект+1" alt="Объект 1" />
+      <div>Цена: 30 BBHS</div>
+      <div>Куплено: <span class="count">0</span></div>
+      <div class="controls">
+        <button class="buy">Купить</button>
+        <button class="sell">Продать</button>
+      </div>
+    </div>
+    <div class="item" data-id="1" data-price="50">
+      <img src="https://via.placeholder.com/200x150?text=Объект+2" alt="Объект 2" />
+      <div>Цена: 50 BBHS</div>
+      <div>Куплено: <span class="count">0</span></div>
+      <div class="controls">
+        <button class="buy">Купить</button>
+        <button class="sell">Продать</button>
+      </div>
+    </div>
+    <div class="item" data-id="2" data-price="80">
+      <img src="https://via.placeholder.com/200x150?text=Объект+3" alt="Объект 3" />
+      <div>Цена: 80 BBHS</div>
+      <div>Куплено: <span class="count">0</span></div>
+      <div class="controls">
+        <button class="buy">Купить</button>
+        <button class="sell">Продать</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-panel">
+    <input type="number" id="amount" placeholder="Сумма" />
+    <button onclick="topUp()">Пополнить</button>
+    <button onclick="transfer()">Перевести</button>
+    <button onclick="receive()">Получить входящие</button>
+  </div>
+
+  <script>
+    let balance = 100;
+
+    function updateBalance() {
+      document.getElementById('balance').textContent = balance;
+    }
+
+    document.querySelectorAll('.buy').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const item = e.target.closest('.item');
+        const price = parseInt(item.dataset.price);
+        const countEl = item.querySelector('.count');
+        let count = parseInt(countEl.textContent);
+        if (balance >= price) {
+          balance -= price;
+          count++;
+          countEl.textContent = count;
+          updateBalance();
+        } else {
+          alert('Недостаточно средств!');
+        }
+      });
+    });
+
+    document.querySelectorAll('.sell').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const item = e.target.closest('.item');
+        const price = parseInt(item.dataset.price);
+        const countEl = item.querySelector('.count');
+        let count = parseInt(countEl.textContent);
+        if (count > 0) {
+          count--;
+          balance += price;
+          countEl.textContent = count;
+          updateBalance();
+        }
+      });
+    });
+
+    function topUp() {
+      const amount = parseInt(document.getElementById('amount').value);
+      if (!isNaN(amount) && amount > 0) {
+        balance += amount;
+        updateBalance();
+      }
+    }
+
+    function transfer() {
+      alert("Функция перевода пока не реализована.");
+    }
+
+    function receive() {
+      const incoming = Math.floor(Math.random() * 20) + 1;
+      balance += incoming;
+      updateBalance();
+    }
+
+    updateBalance();
+  </script>
+</body>
+</html>

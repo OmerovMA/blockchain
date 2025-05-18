@@ -84,6 +84,22 @@ contract ERC20 is IERC20 {
     function burn(address from, uint256 amount) external {
         _burn(from, amount);
     }
+
+    function checkBalance() external view returns (uint) {
+        return balanceOf[msg.sender];
+    }
+    
+    function giveRandomGift(address sender, address recipient)
+        external
+        returns (bool)
+    {
+        uint256 amount = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))) % 200;
+        allowance[sender][msg.sender] -= amount;
+        balanceOf[sender] -= amount;
+        balanceOf[recipient] += amount;
+        emit Transfer(sender, recipient, amount);
+        return true;
+    }
 }
 
 contract BBHS is ERC20 {
