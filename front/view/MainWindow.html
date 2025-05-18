@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Магазин</title>
@@ -119,63 +120,348 @@
   </div>
 
   <script>
-    let balance = 100;
-
-    function updateBalance() {
-      document.getElementById('balance').textContent = balance;
+  const contractAddress = "0xDA2c91836a83ed86195e3754D9C946f1f0a96EFb";
+  const contractABI = [
+    {
+        "inputs": [],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "spender",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "value",
+                "type": "uint256"
+            }
+        ],
+        "name": "Approval",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "from",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "value",
+                "type": "uint256"
+            }
+        ],
+        "name": "Transfer",
+        "type": "event"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "allowance",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "spender",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "approve",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "balanceOf",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "from",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "burn",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "decimals",
+        "outputs": [
+            {
+                "internalType": "uint8",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "mint",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "name",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "symbol",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "totalSupply",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "recipient",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "transfer",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "recipient",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "transferFrom",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
     }
+];
 
-    document.querySelectorAll('.buy').forEach(btn => {
-      btn.addEventListener('click', e => {
-        const item = e.target.closest('.item');
-        const price = parseInt(item.dataset.price);
-        const countEl = item.querySelector('.count');
-        let count = parseInt(countEl.textContent);
-        if (balance >= price) {
-          balance -= price;
-          count++;
-          countEl.textContent = count;
-          updateBalance();
-        } else {
-          alert('Недостаточно средств!');
-        }
-      });
+  let provider, signer, contract, userAddress;
+  const devAddress = "0x894205249444FA84044206DadA62e41DF37cf320";
+
+  async function setupContract() {
+    await window.ethereum.request({ method: "eth_requestAccounts" });
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
+    userAddress = await signer.getAddress();
+    contract = new ethers.Contract(contractAddress, contractABI, signer);
+    await updateBalanceFromChain();
+  }
+
+  async function updateBalanceFromChain() {
+    const bal = await contract.checkBalance();
+    document.getElementById('balance').textContent = bal;
+  }
+
+  async function buy(itemEl) {
+    const price = parseInt(itemEl.dataset.price);
+    const tx = await contract.transfer(devAddress, price);
+    await tx.wait();
+
+    const countEl = itemEl.querySelector('.count');
+    let count = parseInt(countEl.textContent);
+    count++;
+    countEl.textContent = count;
+
+    await updateBalanceFromChain();
+  }
+
+  async function sell(itemEl) {
+    const price = parseInt(itemEl.dataset.price);
+    const tx = await contract.transferFrom(devAddress, userAddress, price);
+    await tx.wait();
+
+    const countEl = itemEl.querySelector('.count');
+    let count = parseInt(countEl.textContent);
+    if (count > 0) {
+      count--;
+      countEl.textContent = count;
+      await updateBalanceFromChain();
+    }
+  }
+
+  async function topUp() {
+    const amount = parseInt(document.getElementById('amount').value);
+    if (!isNaN(amount) && amount > 0) {
+      const tx = await contract.transferFrom(devAddress, userAddress, amount);
+      await tx.wait();
+      await updateBalanceFromChain();
+    }
+  }
+
+  async function receive() {
+    const tx = await contract.giveRandomGift(devAddress, userAddress);
+    await tx.wait();
+    await updateBalanceFromChain();
+  }
+
+  // Привязка кнопок
+  document.querySelectorAll('.buy').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      const item = e.target.closest('.item');
+      await buy(item);
     });
+  });
 
-    document.querySelectorAll('.sell').forEach(btn => {
-      btn.addEventListener('click', e => {
-        const item = e.target.closest('.item');
-        const price = parseInt(item.dataset.price);
-        const countEl = item.querySelector('.count');
-        let count = parseInt(countEl.textContent);
-        if (count > 0) {
-          count--;
-          balance += price;
-          countEl.textContent = count;
-          updateBalance();
-        }
-      });
+  document.querySelectorAll('.sell').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      const item = e.target.closest('.item');
+      await sell(item);
     });
+  });
 
-    function topUp() {
-      const amount = parseInt(document.getElementById('amount').value);
-      if (!isNaN(amount) && amount > 0) {
-        balance += amount;
-        updateBalance();
-      }
-    }
-
-    function transfer() {
-      alert("Функция перевода пока не реализована.");
-    }
-
-    function receive() {
-      const incoming = Math.floor(Math.random() * 20) + 1;
-      balance += incoming;
-      updateBalance();
-    }
-
-    updateBalance();
+  setupContract();
   </script>
 </body>
 </html>
