@@ -81,6 +81,64 @@
       background: #cccccc;
       cursor: not-allowed;
     }
+    .quest-panel {
+  margin: 20px auto;
+  padding: 20px;
+  background: linear-gradient(to right, #f5f7fa, #e4e8eb);
+  border-radius: 10px;
+  max-width: 500px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d1d5db;
+}
+
+.quest-text {
+  margin: 15px 0;
+  font-style: italic;
+  min-height: 60px;
+  color: #374151;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.quest-reward {
+  font-weight: bold;
+  color: #10b981;
+  font-size: 18px;
+  margin: 10px 0;
+}
+
+.quest-panel button {
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.quest-panel button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.quest-panel button:first-of-type {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.quest-panel button:last-of-type {
+  background-color: #10b981;
+  color: white;
+}
+
+.quest-panel button:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
   </style>
 </head>
 <body>
@@ -120,6 +178,10 @@
     <input type="number" id="amount" placeholder="Сумма" min="1" />
     <button onclick="topUp()">Пополнить</button>
     <button onclick="receive()" id="receiveBtn">Получить входящие</button>
+  </div>
+  <div class="quest-panel">
+    <button onclick="generateAIQuest()">Получить квест (Нейросеть)</button>
+  <div id="questText" class="quest-text"></div>
   </div>
 
 <script src="../../../settings/constants.js"></script>
@@ -349,6 +411,69 @@
     }
   }
 
+async function generateAIQuest() {
+  const button = document.querySelector('button');
+  const output = document.getElementById('questText');
+  
+  try {
+    // Показать состояние загрузки
+    button.disabled = true;
+    output.textContent = "Генерация квеста...";
+    
+    const response = await fetch('https://api.gen-api.ru/api/v1/networks/gpt-4-1', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer sk-JCUyyIQGNq7GgMQTK4kMLC3zQTqwzGG1PQSISlEwfnKHkAohyBagOu3a3AoJ' // Замените на реальный ключ
+      },
+      body: JSON.stringify({
+        "is_sync": true,
+        "messages": [
+          {
+            "role": "user",
+            "content": "Придумай уникальный квест для ММО игры в стиле Дикого Запада. Формат: 'Квест: [описание]. Награда: 100 BBHS.' Ограничься 1-2 предложениями."
+          }
+        ],
+        "model": "gpt-4.1-nano",
+        "stream": false,
+        "n": 1,
+        "frequency_penalty": 0,
+        "max_tokens": 1024,
+        "presence_penalty": 0,
+        "temperature": 1,
+        "top_p": 1,
+        "response_format": {"type":"text"}
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Правильное извлечение текста квеста из структуры ответа
+    if (data.response && data.response.length > 0 && data.response[0].message) {
+      const questText = data.response[0].message.content;
+      output.textContent = questText;
+      
+      // Проверка формата ответа (опционально)
+      if (!questText.includes("Квест:") || !questText.includes("Награда:")) {
+        console.warn("Квест не соответствует ожидаемому формату");
+      }
+    } else {
+      throw new Error("Некорректная структура ответа");
+    }
+    
+  } catch (error) {
+    console.error('Ошибка:', error);
+    output.textContent = `Ошибка: ${error.message || "Не удалось получить квест"}`;
+    output.style.color = "#ff0000";
+  } finally {
+    button.disabled = false;
+  }
+}
   // Очистка интервала при закрытии страницы
   window.addEventListener('beforeunload', () => {
     if (balanceUpdateInterval) {
