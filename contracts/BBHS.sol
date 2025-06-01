@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.19;
+pragma solidity ^0.8.19;
  
 interface IERC20 {
     function totalSupply() external view returns (uint256);
@@ -85,21 +85,22 @@ contract ERC20 is IERC20 {
         _burn(from, amount);
     }
 
-    function checkBalance() external view returns (uint) {
-        return balanceOf[msg.sender];
-    }
+
+    // function checkBalance() external view returns (uint) {
+    //     return balanceOf[msg.sender];
+    // }
     
-    function giveRandomGift(address sender, address recipient)
-        external
-        returns (bool)
-    {
-        uint256 amount = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))) % 200;
-        allowance[sender][msg.sender] -= amount;
-        balanceOf[sender] -= amount;
-        balanceOf[recipient] += amount;
-        emit Transfer(sender, recipient, amount);
-        return true;
-    }
+    // function giveRandomGift(address sender, address recipient)
+    //     external
+    //     returns (bool)
+    // {
+    //     uint256 amount = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))) % 200;
+    //     allowance[sender][msg.sender] -= amount;
+    //     balanceOf[sender] -= amount;
+    //     balanceOf[recipient] += amount;
+    //     emit Transfer(sender, recipient, amount);
+    //     return true;
+    // }
 }
 
 contract BBHS is ERC20 {
@@ -108,8 +109,23 @@ contract BBHS is ERC20 {
     string constant _symbol = "BBHS";
     uint8 constant _decimals = 0;
 
-    constructor() ERC20(_name, _symbol, _decimals)
+    constructor() payable ERC20(_name, _symbol, _decimals)
     {
-        _mint(msg.sender, _initial_supply);
+        _mint(address(this), _initial_supply);
     }
+    
+        function _transfer(address from, address to, uint256 amount) internal {
+        require(from != address(0), "Transfer from zero address");
+        require(to != address(0), "Transfer to zero address");
+        require(balanceOf[from] >= amount, "Insufficient balance");
+        
+        balanceOf[from] -= amount;
+        balanceOf[to] += amount;
+        emit Transfer(from, to, amount);
+    }
+
+    function sendTokens(address recipient, uint256 amount) external {
+    require(balanceOf[address(this)] >= amount, "Not enough tokens in contract");
+    _transfer(address(this), recipient, amount); // Перевод без approve
+}
 }

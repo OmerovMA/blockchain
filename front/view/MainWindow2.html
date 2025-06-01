@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Магазин</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <style>
+     body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+    .wallet {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #fff;
+      padding: 10px 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .container {
+      max-width: 960px;
+      margin: 100px auto 20px;
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 0 10px;
+    }
+    .item {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 15px;
+      text-align: center;
+      width: 30%;
+    }
+    .item img {
+      width: 100%;
+      border-radius: 8px;
+    }
+    .controls {
+      margin-top: 10px;
+    }
+    .controls button {
+      margin: 5px;
+      padding: 5px 10px;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .controls button:hover {
+      background: #0056b3;
+    }
+    .bottom-panel {
+      text-align: center;
+      margin-top: 30px;
+    }
+    .bottom-panel input {
+      padding: 5px;
+      width: 100px;
+      margin-right: 5px;
+    }
+    .bottom-panel button {
+      margin: 5px;
+      padding: 5px 10px;
+      border: none;
+      background: #28a745;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .bottom-panel button:hover {
+      background: #1e7e34;
+    }
+  </style>
+</head>
+<body>
+  <div class="wallet">Баланс: <span id="balance">0</span> BBHS</div>
+
+  <div class="container">
+    <!-- Пример предмета -->
+    <div class="item" data-id="0" data-price="30">
+      <img src="https://i.redd.it/ppp9lz9wupo71.png" alt="Объект 1" />
+      <div>Цена: 30 BBHS</div>
+      <div>Куплено: <span class="count">0</span></div>
+      <div class="controls">
+        <button class="buy">Купить</button>
+        <button class="sell">Продать</button>
+      </div>
+    </div>
+    <div class="item" data-id="1" data-price="40">
+      <img src="https://i.redd.it/8dnj1wd1om5d1.jpeg" alt="Объект 2" />
+      <div>Цена: 40 BBHS</div>
+      <div>Куплено: <span class="count">0</span></div>
+      <div class="controls">
+        <button class="buy">Купить</button>
+        <button class="sell">Продать</button>
+      </div>
+    </div>
+    <div class="item" data-id="2" data-price="50">
+      <img src="https://i.ytimg.com/vi/g6PakHjWCmE/maxresdefault.jpg" alt="Объект 3" />
+      <div>Цена: 50 BBHS</div>
+      <div>Куплено: <span class="count">0</span></div>
+      <div class="controls">
+        <button class="buy">Купить</button>
+        <button class="sell">Продать</button>
+      </div>
+    </div>
+    <!-- Добавьте другие предметы аналогично -->
+  </div>
+
+  <div class="bottom-panel">
+    <input type="number" id="amount" placeholder="Сумма" />
+    <button onclick="topUp()">Пополнить</button>
+    <button onclick="transfer()">Перевести</button>
+    <button onclick="receive()">Получить входящие</button>
+  </div>
+
+<script src="../../../settings/constants.js"></script>
+
+  <script>
+
+    window.addEventListener('load', connectWallet);
+    const developerAddress = window.ContractConfig.DEV_ADDRESS // Адрес разработчика
+    const contractAddress = window.ContractConfig.ADDRESS;
+    const contractABI = window.ContractConfig.ABI;
+    let provider;
+    let signer;
+    let contract;
+    let userAddress;
+
+    async function connectWallet() {
+      if (window.ethereum) {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+        userAddress = await signer.getAddress();
+        console.log("Подключен кошелек:", userAddress);
+        contract = new ethers.Contract(contractAddress, contractABI, signer);
+        updateBalance();
+      } else {
+        alert("Установите MetaMask!");
+      }
+    }
+
+    async function updateBalance() {
+      if (!contract || !userAddress) return;
+
+      try {
+          const balance = await contract.balanceOf(userAddress);
+          document.getElementById('balance').textContent = balance.toString();
+      } catch (error) {
+          console.error('Ошибка при получении баланса:', error);
+      }
+    }
+
+
+// document.querySelectorAll('.buy').forEach(btn => {
+//   btn.addEventListener('click', async e => {
+//     const item = e.target.closest('.item');
+//     const price = parseInt(item.dataset.price);
+//     console.log(price);
+//     const countEl = item.querySelector('.count');
+//     let count = parseInt(countEl.textContent);
+
+//     if (!contract || !signer || !userAddress) {
+//       alert('Кошелек не подключен');
+//       return;
+//     }
+
+//     try {
+//       const tx = await contract.transfer(developerAddress, price);
+//       await tx.wait();
+
+//       count++;
+//       countEl.textContent = count;
+//       updateBalance();
+//     } catch (err) {
+//       console.error('Ошибка при покупке:', err);
+//       alert('Ошибка при покупке');
+//     }
+//   });
+// });
+
+document.querySelectorAll('.buy').forEach(btn => {
+  btn.addEventListener('click', async e => {
+    try {
+      const item = e.target.closest('.item');
+      const price = parseInt(item.dataset.price);
+      
+      // Проверки
+      if (isNaN(price) || price <= 0) {
+        throw new Error('Неверная цена товара');
+      }
+      
+      if (!window.ethereum || !contract || !userAddress) {
+        throw new Error('Кошелек не подключен');
+      }
+
+      console.log('Покупка:', { 
+        to: contractAddress, 
+        amount: price,
+        contract: contractAddress 
+      });
+
+      // Отправка транзакции
+      const tx = await contract.transfer(developerAddress, price);
+      console.log('Транзакция отправлена:', tx.hash);
+
+      // const approveTx = await contract.approve(userAddress, price);
+      // await approveTx.wait(); // Ждем подтверждения
+
+      // const tx = await contract.transferFrom(userAddress, developerAddress, price);
+      // await tx.wait(); // Ждем завершения транзакции
+      // console.log('Транзакция отправлена:', tx.hash);
+      
+      // // Ждём подтверждения
+      // const receipt = await tx.wait();
+      // console.log('Подтверждение:', receipt);
+      
+      const receipt = await tx.wait();
+
+      if (receipt.status === 1) {
+        // Обновляем UI
+        const countEl = item.querySelector('.count');
+        countEl.textContent = parseInt(countEl.textContent) + 1;
+        await updateBalance();
+        alert(`Успешно! Транзакция: ${tx.hash}`);
+      } else {
+        throw new Error('Транзакция не выполнена');
+      }
+    } catch (err) {
+      console.error('Ошибка покупки:', err);
+      alert(`Ошибка: ${err.message || 'См. консоль'}`);
+    }
+  });
+});
+
+   document.querySelectorAll('.sell').forEach(btn => {
+  btn.addEventListener('click', async e => {
+    const item = e.target.closest('.item');
+    const price = parseInt(item.dataset.price);
+    const countEl = item.querySelector('.count');
+    let count = parseInt(countEl.textContent);
+
+    if (count > 0) {
+      try {
+        if (!userAddress) return alert('Кошелек не подключен');
+
+          const response = await fetch('http://localhost:3000/topup', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              userAddress: userAddress,
+              amount: price
+            })
+          });
+
+        const result = await response.json();
+        if (result.success) {
+          count--;
+          countEl.textContent = count;
+          updateBalance();
+        } else {
+          alert('Ошибка при продаже.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Ошибка при продаже.');
+      }
+    }
+  });
+});
+
+
+    async function topUp() {
+      const amount = parseInt(document.getElementById('amount').value);
+      if (!isNaN(amount) && amount > 0) {
+        try {
+          const response = await fetch('http://localhost:3000/topup', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              userAddress: userAddress,
+              amount: amount
+            })
+          });
+          const result = await response.json();
+          if (result.success) {
+            alert(`Успешное пополнение на ${amount} BBHS`);
+            updateBalance();
+          } else {
+            alert('Ошибка при пополнении.');
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Ошибка при пополнении.');
+        }
+      }
+    }
+
+    // async function transfer() {
+    //   const recipient = prompt("Введите адрес получателя:");
+    //   const amount = parseInt(prompt("Введите сумму:"));
+    //   if (recipient && !isNaN(amount) && amount > 0) {
+    //     try {
+    //       const tx = await contract.transfer(recipient, amount);
+    //       await tx.wait();
+    //       updateBalance();
+    //     } catch (err) {
+    //       console.error(err);
+    //       alert('Ошибка при переводе.');
+    //     }
+    //   }
+    // }
+
+    // async function receive() {
+    //   try {
+    //     const response = await fetch('http://localhost:3000/gift', {
+    //       method: 'POST',
+    //       headers: {
+    //         'Content-Type': 'application/json'
+    //       },
+    //       body: JSON.stringify({
+    //         recipient: userAddress
+    //       })
+    //     });
+    //     const result = await response.json();
+    //     if (result.success) {
+    //       updateBalance();
+    //     } else {
+    //       alert('Ошибка при получении подарка.');
+    //     }
+    //   } catch (err) {
+    //     console.error(err);
+    //     alert('Ошибка при получении подарка.');
+    //   }
+    // }
+
+    async function receive() {
+        try {
+          console.log(userAddress);
+        const response = await fetch('http://localhost:3000/gift', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+            recipient: userAddress
+            })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            alert(`Вы получили подарок: ${result.amount} BBHS!`);
+            updateBalance();
+        } else {
+            alert('Ошибка при получении подарка.');
+        }
+        } catch (err) {
+        console.error(err);
+        alert('Ошибка при получении подарка.');
+        }
+    }
+
+    connectWallet();
+  </script>
+</body>
+</html>
