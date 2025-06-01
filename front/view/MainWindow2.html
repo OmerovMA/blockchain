@@ -6,7 +6,7 @@
   <title>Магазин</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
-     body {
+    body {
       font-family: sans-serif;
       margin: 0;
       padding: 0;
@@ -77,13 +77,16 @@
     .bottom-panel button:hover {
       background: #1e7e34;
     }
+    .bottom-panel button:disabled {
+      background: #cccccc;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
   <div class="wallet">Баланс: <span id="balance">0</span> BBHS</div>
 
   <div class="container">
-    <!-- Пример предмета -->
     <div class="item" data-id="0" data-price="30">
       <img src="https://i.redd.it/ppp9lz9wupo71.png" alt="Объект 1" />
       <div>Цена: 30 BBHS</div>
@@ -111,146 +114,148 @@
         <button class="sell">Продать</button>
       </div>
     </div>
-    <!-- Добавьте другие предметы аналогично -->
   </div>
 
   <div class="bottom-panel">
-    <input type="number" id="amount" placeholder="Сумма" />
+    <input type="number" id="amount" placeholder="Сумма" min="1" />
     <button onclick="topUp()">Пополнить</button>
-    <button onclick="transfer()">Перевести</button>
-    <button onclick="receive()">Получить входящие</button>
+    <button onclick="receive()" id="receiveBtn">Получить входящие</button>
   </div>
 
 <script src="../../../settings/constants.js"></script>
 
-  <script>
+<script>
+  window.addEventListener('load', connectWallet);
+  const developerAddress = window.ContractConfig.DEV_ADDRESS;
+  const contractAddress = window.ContractConfig.ADDRESS;
+  const contractABI = window.ContractConfig.ABI;
+  let provider;
+  let signer;
+  let contract;
+  let userAddress;
+  let balanceUpdateInterval;
+  const PURCHASE_KEY = 'user_purchases';
+  const GIFT_KEY = 'last_gift_date';
 
-    window.addEventListener('load', connectWallet);
-    const developerAddress = window.ContractConfig.DEV_ADDRESS // Адрес разработчика
-    const contractAddress = window.ContractConfig.ADDRESS;
-    const contractABI = window.ContractConfig.ABI;
-    let provider;
-    let signer;
-    let contract;
-    let userAddress;
-
-    async function connectWallet() {
-      if (window.ethereum) {
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
-        userAddress = await signer.getAddress();
-        console.log("Подключен кошелек:", userAddress);
-        contract = new ethers.Contract(contractAddress, contractABI, signer);
-        updateBalance();
-      } else {
-        alert("Установите MetaMask!");
-      }
+  async function connectWallet() {
+    if (window.ethereum) {
+      provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      signer = provider.getSigner();
+      userAddress = await signer.getAddress();
+      console.log("Подключен кошелек:", userAddress);
+      contract = new ethers.Contract(contractAddress, contractABI, signer);
+      
+      // Загружаем сохраненные покупки
+      loadPurchases();
+      updateBalance();
+      
+      // Запускаем обновление баланса каждые 10 секунд
+      balanceUpdateInterval = setInterval(updateBalance, 10000);
+      
+      // Проверяем, можно ли получить подарок
+      checkGiftAvailability();
+    } else {
+      alert("Установите MetaMask!");
     }
+  }
 
-    async function updateBalance() {
-      if (!contract || !userAddress) return;
-
-      try {
-          const balance = await contract.balanceOf(userAddress);
-          document.getElementById('balance').textContent = balance.toString();
-      } catch (error) {
-          console.error('Ошибка при получении баланса:', error);
-      }
+  // Загрузка сохраненных покупок
+  function loadPurchases() {
+    const savedPurchases = localStorage.getItem(PURCHASE_KEY);
+    if (savedPurchases) {
+      const purchases = JSON.parse(savedPurchases);
+      document.querySelectorAll('.item').forEach(item => {
+        const itemId = item.dataset.id;
+        if (purchases[itemId]) {
+          item.querySelector('.count').textContent = purchases[itemId];
+        }
+      });
     }
+  }
 
+  // Сохранение покупок
+  function savePurchases() {
+    const purchases = {};
+    document.querySelectorAll('.item').forEach(item => {
+      const itemId = item.dataset.id;
+      purchases[itemId] = parseInt(item.querySelector('.count').textContent);
+    });
+    localStorage.setItem(PURCHASE_KEY, JSON.stringify(purchases));
+  }
 
-// document.querySelectorAll('.buy').forEach(btn => {
-//   btn.addEventListener('click', async e => {
-//     const item = e.target.closest('.item');
-//     const price = parseInt(item.dataset.price);
-//     console.log(price);
-//     const countEl = item.querySelector('.count');
-//     let count = parseInt(countEl.textContent);
+  async function updateBalance() {
+    if (!contract || !userAddress) return;
 
-//     if (!contract || !signer || !userAddress) {
-//       alert('Кошелек не подключен');
-//       return;
-//     }
-
-//     try {
-//       const tx = await contract.transfer(developerAddress, price);
-//       await tx.wait();
-
-//       count++;
-//       countEl.textContent = count;
-//       updateBalance();
-//     } catch (err) {
-//       console.error('Ошибка при покупке:', err);
-//       alert('Ошибка при покупке');
-//     }
-//   });
-// });
-
-document.querySelectorAll('.buy').forEach(btn => {
-  btn.addEventListener('click', async e => {
     try {
+      const balance = await contract.balanceOf(userAddress);
+      document.getElementById('balance').textContent = balance.toString();
+    } catch (error) {
+      console.error('Ошибка при получении баланса:', error);
+    }
+  }
+
+  // Проверка доступности подарка
+  function checkGiftAvailability() {
+    const lastGiftDate = localStorage.getItem(GIFT_KEY);
+    const receiveBtn = document.getElementById('receiveBtn');
+    
+    if (lastGiftDate) {
+      const lastDate = new Date(lastGiftDate);
+      const today = new Date();
+      
+      if (lastDate.toDateString() === today.toDateString()) {
+        receiveBtn.disabled = true;
+        receiveBtn.textContent = 'Уже получено сегодня';
+      }
+    }
+  }
+
+  document.querySelectorAll('.buy').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      try {
+        const item = e.target.closest('.item');
+        const price = parseInt(item.dataset.price);
+        
+        if (isNaN(price) || price <= 0) {
+          throw new Error('Неверная цена товара');
+        }
+        
+        if (!window.ethereum || !contract || !userAddress) {
+          throw new Error('Кошелек не подключен');
+        }
+
+        const tx = await contract.transfer(developerAddress, price);
+        console.log('Транзакция отправлена:', tx.hash);
+        
+        const receipt = await tx.wait();
+
+        if (receipt.status === 1) {
+          const countEl = item.querySelector('.count');
+          countEl.textContent = parseInt(countEl.textContent) + 1;
+          savePurchases();
+          await updateBalance();
+          alert(`Успешно! Транзакция: ${tx.hash}`);
+        } else {
+          throw new Error('Транзакция не выполнена');
+        }
+      } catch (err) {
+        console.error('Ошибка покупки:', err);
+        alert(`Ошибка: ${err.message || 'См. консоль'}`);
+      }
+    });
+  });
+
+  document.querySelectorAll('.sell').forEach(btn => {
+    btn.addEventListener('click', async e => {
       const item = e.target.closest('.item');
       const price = parseInt(item.dataset.price);
-      
-      // Проверки
-      if (isNaN(price) || price <= 0) {
-        throw new Error('Неверная цена товара');
-      }
-      
-      if (!window.ethereum || !contract || !userAddress) {
-        throw new Error('Кошелек не подключен');
-      }
+      const countEl = item.querySelector('.count');
+      let count = parseInt(countEl.textContent);
 
-      console.log('Покупка:', { 
-        to: contractAddress, 
-        amount: price,
-        contract: contractAddress 
-      });
-
-      // Отправка транзакции
-      const tx = await contract.transfer(developerAddress, price);
-      console.log('Транзакция отправлена:', tx.hash);
-
-      // const approveTx = await contract.approve(userAddress, price);
-      // await approveTx.wait(); // Ждем подтверждения
-
-      // const tx = await contract.transferFrom(userAddress, developerAddress, price);
-      // await tx.wait(); // Ждем завершения транзакции
-      // console.log('Транзакция отправлена:', tx.hash);
-      
-      // // Ждём подтверждения
-      // const receipt = await tx.wait();
-      // console.log('Подтверждение:', receipt);
-      
-      const receipt = await tx.wait();
-
-      if (receipt.status === 1) {
-        // Обновляем UI
-        const countEl = item.querySelector('.count');
-        countEl.textContent = parseInt(countEl.textContent) + 1;
-        await updateBalance();
-        alert(`Успешно! Транзакция: ${tx.hash}`);
-      } else {
-        throw new Error('Транзакция не выполнена');
-      }
-    } catch (err) {
-      console.error('Ошибка покупки:', err);
-      alert(`Ошибка: ${err.message || 'См. консоль'}`);
-    }
-  });
-});
-
-   document.querySelectorAll('.sell').forEach(btn => {
-  btn.addEventListener('click', async e => {
-    const item = e.target.closest('.item');
-    const price = parseInt(item.dataset.price);
-    const countEl = item.querySelector('.count');
-    let count = parseInt(countEl.textContent);
-
-    if (count > 0) {
-      try {
-        if (!userAddress) return alert('Кошелек не подключен');
+      if (count > 0) {
+        try {
+          if (!userAddress) return alert('Кошелек не подключен');
 
           const response = await fetch('http://localhost:3000/topup', {
             method: 'POST',
@@ -263,116 +268,93 @@ document.querySelectorAll('.buy').forEach(btn => {
             })
           });
 
-        const result = await response.json();
-        if (result.success) {
-          count--;
-          countEl.textContent = count;
-          updateBalance();
-        } else {
-          alert('Ошибка при продаже.');
-        }
-      } catch (err) {
-        console.error(err);
-        alert('Ошибка при продаже.');
-      }
-    }
-  });
-});
-
-
-    async function topUp() {
-      const amount = parseInt(document.getElementById('amount').value);
-      if (!isNaN(amount) && amount > 0) {
-        try {
-          const response = await fetch('http://localhost:3000/topup', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              userAddress: userAddress,
-              amount: amount
-            })
-          });
           const result = await response.json();
           if (result.success) {
-            alert(`Успешное пополнение на ${amount} BBHS`);
+            countEl.textContent = count - 1;
+            savePurchases();
             updateBalance();
           } else {
-            alert('Ошибка при пополнении.');
+            alert('Ошибка при продаже.');
           }
         } catch (err) {
           console.error(err);
-          alert('Ошибка при пополнении.');
+          alert('Ошибка при продаже.');
         }
       }
-    }
+    });
+  });
 
-    // async function transfer() {
-    //   const recipient = prompt("Введите адрес получателя:");
-    //   const amount = parseInt(prompt("Введите сумму:"));
-    //   if (recipient && !isNaN(amount) && amount > 0) {
-    //     try {
-    //       const tx = await contract.transfer(recipient, amount);
-    //       await tx.wait();
-    //       updateBalance();
-    //     } catch (err) {
-    //       console.error(err);
-    //       alert('Ошибка при переводе.');
-    //     }
-    //   }
-    // }
-
-    // async function receive() {
-    //   try {
-    //     const response = await fetch('http://localhost:3000/gift', {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json'
-    //       },
-    //       body: JSON.stringify({
-    //         recipient: userAddress
-    //       })
-    //     });
-    //     const result = await response.json();
-    //     if (result.success) {
-    //       updateBalance();
-    //     } else {
-    //       alert('Ошибка при получении подарка.');
-    //     }
-    //   } catch (err) {
-    //     console.error(err);
-    //     alert('Ошибка при получении подарка.');
-    //   }
-    // }
-
-    async function receive() {
-        try {
-          console.log(userAddress);
-        const response = await fetch('http://localhost:3000/gift', {
-            method: 'POST',
-            headers: {
+  async function topUp() {
+    const amountInput = document.getElementById('amount');
+    const amount = parseInt(amountInput.value);
+    
+    if (!isNaN(amount) && amount > 0) {
+      try {
+        const response = await fetch('http://localhost:3000/topup', {
+          method: 'POST',
+          headers: {
             'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-            recipient: userAddress
-            })
+          },
+          body: JSON.stringify({
+            userAddress: userAddress,
+            amount: amount
+          })
         });
-
+        
         const result = await response.json();
         if (result.success) {
-            alert(`Вы получили подарок: ${result.amount} BBHS!`);
-            updateBalance();
+          alert(`Успешное пополнение на ${amount} BBHS`);
+          amountInput.value = ''; // Очищаем поле ввода
+          updateBalance();
         } else {
-            alert('Ошибка при получении подарка.');
+          alert('Ошибка при пополнении.');
         }
-        } catch (err) {
+      } catch (err) {
         console.error(err);
-        alert('Ошибка при получении подарка.');
-        }
+        alert('Ошибка при пополнении.');
+      }
     }
+  }
 
-    connectWallet();
-  </script>
+  async function receive() {
+    try {
+      const response = await fetch('http://localhost:3000/gift', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          recipient: userAddress
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        // Сохраняем дату получения подарка
+        localStorage.setItem(GIFT_KEY, new Date().toISOString());
+        
+        // Обновляем UI
+        const receiveBtn = document.getElementById('receiveBtn');
+        receiveBtn.disabled = true;
+        receiveBtn.textContent = 'Уже получено сегодня';
+        
+        alert(`Вы получили подарок: ${result.amount} BBHS!`);
+        updateBalance();
+      } else {
+        alert('Ошибка при получении подарка.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Ошибка при получении подарка.');
+    }
+  }
+
+  // Очистка интервала при закрытии страницы
+  window.addEventListener('beforeunload', () => {
+    if (balanceUpdateInterval) {
+      clearInterval(balanceUpdateInterval);
+    }
+  });
+</script>
 </body>
 </html>
