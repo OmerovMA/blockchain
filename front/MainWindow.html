@@ -82,71 +82,70 @@
       cursor: not-allowed;
     }
     .quest-panel {
-  margin: 20px auto;
-  padding: 20px;
-  background: linear-gradient(to right, #f5f7fa, #e4e8eb);
-  border-radius: 10px;
-  max-width: 500px;
-  text-align: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border: 1px solid #d1d5db;
-}
-
-.quest-text {
-  margin: 15px 0;
-  font-style: italic;
-  min-height: 60px;
-  color: #374151;
-  font-size: 16px;
-  line-height: 1.5;
-}
-
-.quest-reward {
-  font-weight: bold;
-  color: #10b981;
-  font-size: 18px;
-  margin: 10px 0;
-}
-
-.quest-panel button {
-  padding: 10px 20px;
-  margin: 5px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: all 0.3s ease;
-}
-
-.quest-panel button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.quest-panel button:first-of-type {
-  background-color: #f59e0b;
-  color: white;
-}
-
-.quest-panel button:last-of-type {
-  background-color: #10b981;
-  color: white;
-}
-
-.quest-panel button:disabled {
-  background-color: #d1d5db;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
+      margin: 20px auto;
+      padding: 20px;
+      background: linear-gradient(to right, #f5f7fa, #e4e8eb);
+      border-radius: 10px;
+      max-width: 500px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border: 1px solid #d1d5db;
+    }
+    .quest-text {
+      margin: 15px 0;
+      font-style: italic;
+      min-height: 60px;
+      color: #374151;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    .quest-reward {
+      font-weight: bold;
+      color: #10b981;
+      font-size: 18px;
+      margin: 10px 0;
+    }
+    .quest-panel button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+    .quest-panel button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    .quest-panel button:first-of-type {
+      background-color: #f59e0b;
+      color: white;
+    }
+    .quest-panel button:last-of-type {
+      background-color: #10b981;
+      color: white;
+    }
+    .quest-panel button:disabled {
+      background-color: #d1d5db;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .item-name {
+      font-weight: bold;
+      font-size: 18px;
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
   <div class="wallet">Баланс: <span id="balance">0</span> BBHS</div>
 
   <div class="container">
-    <div class="item" data-id="0" data-price="30">
-      <img src="https://i.redd.it/ppp9lz9wupo71.png" alt="Объект 1" />
+    <div class="item" data-id="0" data-price="30" data-name="Винтовка Vertelli оглушитель">
+      <img src="https://i.redd.it/ppp9lz9wupo71.png" alt="Винтовка Vertelli оглушитель" />
+      <div class="item-name">Винтовка Vertelli оглушитель</div>
       <div>Цена: 30 BBHS</div>
       <div>Куплено: <span class="count">0</span></div>
       <div class="controls">
@@ -154,8 +153,9 @@
         <button class="sell">Продать</button>
       </div>
     </div>
-    <div class="item" data-id="1" data-price="40">
-      <img src="https://i.redd.it/8dnj1wd1om5d1.jpeg" alt="Объект 2" />
+    <div class="item" data-id="1" data-price="40" data-name="Пистолет LeMat 'Латунный цветок'">
+      <img src="https://i.redd.it/8dnj1wd1om5d1.jpeg" alt="Пистолет LeMat 'Латунный цветок'" />
+      <div class="item-name">Пистолет LeMat 'Латунный цветок'</div>
       <div>Цена: 40 BBHS</div>
       <div>Куплено: <span class="count">0</span></div>
       <div class="controls">
@@ -163,8 +163,9 @@
         <button class="sell">Продать</button>
       </div>
     </div>
-    <div class="item" data-id="2" data-price="50">
-      <img src="https://i.ytimg.com/vi/g6PakHjWCmE/maxresdefault.jpg" alt="Объект 3" />
+    <div class="item" data-id="2" data-price="50" data-name="LeMat-карабин 'Поминки'">
+      <img src="https://i.ytimg.com/vi/g6PakHjWCmE/maxresdefault.jpg" alt="LeMat-карабин 'Поминки'" />
+      <div class="item-name">LeMat-карабин 'Поминки'</div>
       <div>Цена: 50 BBHS</div>
       <div>Куплено: <span class="count">0</span></div>
       <div class="controls">
@@ -181,7 +182,7 @@
   </div>
   <div class="quest-panel">
     <button onclick="generateAIQuest()">Получить квест (Нейросеть)</button>
-  <div id="questText" class="quest-text"></div>
+    <div id="questText" class="quest-text"></div>
   </div>
 
 <script src="../../../settings/constants.js"></script>
@@ -411,69 +412,95 @@
     }
   }
 
-async function generateAIQuest() {
-  const button = document.querySelector('button');
-  const output = document.getElementById('questText');
-  
-  try {
-    // Показать состояние загрузки
-    button.disabled = true;
-    output.textContent = "Генерация квеста...";
-    
-    const response = await fetch('https://api.gen-api.ru/api/v1/networks/gpt-4-1', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer sk-JCUyyIQGNq7GgMQTK4kMLC3zQTqwzGG1PQSISlEwfnKHkAohyBagOu3a3AoJ' // Замените на реальный ключ
-      },
-      body: JSON.stringify({
-        "is_sync": true,
-        "messages": [
-          {
-            "role": "user",
-            "content": "Придумай уникальный квест для ММО игры в стиле Дикого Запада. Формат: 'Квест: [описание]. Награда: 100 BBHS.' Ограничься 1-2 предложениями."
-          }
-        ],
-        "model": "gpt-4.1-nano",
-        "stream": false,
-        "n": 1,
-        "frequency_penalty": 0,
-        "max_tokens": 1024,
-        "presence_penalty": 0,
-        "temperature": 1,
-        "top_p": 1,
-        "response_format": {"type":"text"}
-      })
+  function getAvailableItems() {
+    const items = [];
+    document.querySelectorAll('.item').forEach(item => {
+      items.push({
+        name: item.dataset.name,
+        price: item.dataset.price,
+        count: parseInt(item.querySelector('.count').textContent)
+      });
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    
-    // Правильное извлечение текста квеста из структуры ответа
-    if (data.response && data.response.length > 0 && data.response[0].message) {
-      const questText = data.response[0].message.content;
-      output.textContent = questText;
-      
-      // Проверка формата ответа (опционально)
-      if (!questText.includes("Квест:") || !questText.includes("Награда:")) {
-        console.warn("Квест не соответствует ожидаемому формату");
-      }
-    } else {
-      throw new Error("Некорректная структура ответа");
-    }
-    
-  } catch (error) {
-    console.error('Ошибка:', error);
-    output.textContent = `Ошибка: ${error.message || "Не удалось получить квест"}`;
-    output.style.color = "#ff0000";
-  } finally {
-    button.disabled = false;
+    return items;
   }
-}
+
+  function generateQuestPrompt() {
+    const items = getAvailableItems();
+    const itemNames = items.filter(item => item.count === 0).map(item => item.name).join(', ');
+    const ownedItems = items.filter(item => item.count > 0).map(item => `${item.name} (${item.count} шт.)`).join(', ');
+    
+    return `Придумай уникальный квест для ММО игры в стиле Дикого Запада, используя следующие предметы если они есть: ${ownedItems || "Предметов нет"}. 
+    В квесте по возможности должны быть использованы имеющиеся предметы. Не обязательно первый предмет из списка. Если никаких предметов нет, то придумать квест без использования предметов. Нельзя выдавать квест связанный с отсутствующими предметами. 
+    Формат: 'Квест: [описание]. Награда: [сумма] BBHS.' 
+    Ограничься 1-2 предложениями. Сделай квест интересным и соответствующим тематике Дикого Запада.`;
+  }
+
+  async function generateAIQuest() {
+    const button = document.querySelector('.quest-panel button');
+    const output = document.getElementById('questText');
+    const prompt = generateQuestPrompt();
+    
+    try {
+      // Показать состояние загрузки
+      button.disabled = true;
+      output.textContent = "Генерация квеста...";
+      
+      const response = await fetch('https://api.gen-api.ru/api/v1/networks/gpt-4-1', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer sk-JCUyyIQGNq7GgMQTK4kMLC3zQTqwzGG1PQSISlEwfnKHkAohyBagOu3a3AoJ'
+        },
+        body: JSON.stringify({
+          "is_sync": true,
+          "messages": [
+            {
+              "role": "user",
+              "content": prompt
+            }
+          ],
+          "model": "gpt-4.1-nano",
+          "stream": false,
+          "n": 1,
+          "frequency_penalty": 0,
+          "max_tokens": 1024,
+          "presence_penalty": 0,
+          "temperature": 1,
+          "top_p": 1,
+          "response_format": {"type":"text"}
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Правильное извлечение текста квеста из структуры ответа
+      if (data.response && data.response.length > 0 && data.response[0].message) {
+        const questText = data.response[0].message.content;
+        output.textContent = questText;
+        output.style.color = "#374151";
+        
+        // Проверка формата ответа (опционально)
+        if (!questText.includes("Квест:") || !questText.includes("Награда:")) {
+          console.warn("Квест не соответствует ожидаемому формату");
+        }
+      } else {
+        throw new Error("Некорректная структура ответа");
+      }
+      
+    } catch (error) {
+      console.error('Ошибка:', error);
+      output.textContent = `Ошибка: ${error.message || "Не удалось получить квест"}`;
+      output.style.color = "#ff0000";
+    } finally {
+      button.disabled = false;
+    }
+  }
+
   // Очистка интервала при закрытии страницы
   window.addEventListener('beforeunload', () => {
     if (balanceUpdateInterval) {
